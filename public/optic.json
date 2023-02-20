@@ -1,0 +1,9 @@
+{
+  "prefix": "/_optic/",
+  "bare": ["/bare/"],
+  "worker": "/worker.js",
+  "client": "/client.js",
+  "shared": "/shared.js",
+  "logLevel": 3,
+  "disableCache": true
+}
