@@ -1,6 +1,6 @@
 export default interface OpticConfig {
   prefix: string;
-  bare: string[];
+  bare: string;
   worker: string;
   client: string;
   shared: string;

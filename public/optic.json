@@ -1,6 +1,6 @@
 {
   "prefix": "/_optic/",
-  "bare": ["/bare/"],
+  "bare": "/bare/",
   "worker": "/worker.js",
   "client": "/client.js",
   "shared": "/shared.js",
