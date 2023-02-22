@@ -1,26 +1,13 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="webworker" />
 
-import OpticConfig from "~/types/OpticConfig";
-import OpticShared from "~/types/OpticShared";
 import handleRequest from "./handleRequest";
 import BareClient from "@tomphttp/bare-client";
 
-// Default type of `self` is `WorkerGlobalScope & typeof globalThis`
-// https://github.com/microsoft/TypeScript/issues/14877
 export declare var self: ServiceWorkerGlobalScope;
-declare var _OpticShared: OpticShared;
 
 const params = new URLSearchParams(location.search);
-if (!params.get("config")) {
-  throw new Error("No config provided");
-}
-try {
-  JSON.parse(params.get("config") as string);
-} catch {
-  throw new Error("Invalid config provided");
-}
-const config = JSON.parse(params.get("config") as string) as OpticConfig;
+const config = JSON.parse(params.get("config") as string);
 importScripts(
   `${config.shared}${
     config.disableCache
@@ -28,7 +15,16 @@ importScripts(
       : ""
   }}`
 );
-const bareClient: BareClient = new _OpticShared.libs.BareClient(
+
+$optic.prefix = config.prefix;
+$optic.bare = config.bare;
+$optic.worker = config.worker;
+$optic.client = config.client;
+$optic.shared = config.shared;
+$optic.logLevel = config.logLevel ?? 0;
+$optic.disableCache = config.disableCache ?? false;
+
+const bareClient: BareClient = new $optic.libs.BareClient(
   new URL(config.bare, location.origin)
 );
 
@@ -39,5 +35,5 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event, bareClient, config));
+  event.respondWith(handleRequest(event, bareClient));
 });

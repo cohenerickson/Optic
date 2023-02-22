@@ -1,16 +1,15 @@
-import libs from "./libs";
-import OpticShared from "~/types/OpticShared";
+import BareClient from "@tomphttp/bare-client";
+import { encode, decode } from "./codec";
+import scopeURL from "./scopeURL";
+import rewriteCSS from "./rewriteCSS";
 
-const shared = {
-  libs
+// @ts-ignore
+self.$optic = {
+  libs: {
+    BareClient
+  },
+  encode,
+  decode,
+  scopeURL,
+  rewriteCSS
 };
-
-declare global {
-  interface Window {
-    _OpticShared: typeof shared;
-  }
-}
-
-self._OpticShared = shared;
-
-export {};

@@ -1,16 +1,8 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="dom" />
 
-import OpticConfig from "~/types/OpticConfig";
-
-declare global {
-  interface Window {
-    Optic: Optic;
-  }
-}
-
-class Optic {
-  config?: OpticConfig;
+class Instance {
+  config?: any;
 
   constructor() {}
 
@@ -88,4 +80,5 @@ class Optic {
   }
 }
 
-window.Optic = new Optic();
+// @ts-ignore
+window.Optic = new Instance();
