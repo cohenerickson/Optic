@@ -2,6 +2,7 @@ import BareClient from "@tomphttp/bare-client";
 import { encode, decode } from "./codec";
 import scopeURL from "./scopeURL";
 import rewriteCSS from "./rewriteCSS";
+import rewriteSrcSet from "./rewriteSrcSet";
 
 // @ts-ignore
 self.$optic = {
@@ -11,5 +12,9 @@ self.$optic = {
   encode,
   decode,
   scopeURL,
-  rewriteCSS
+  rewriteCSS,
+  rewriteJS: (x) => {
+    return x;
+  },
+  rewriteSrcSet
 };

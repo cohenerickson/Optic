@@ -1,4 +1,4 @@
-import { OpticStorage } from "~/types/Optic";
+import type { OpticStorage } from "~/global";
 
 export function createStorageProxy(scope: Storage): OpticStorage {
   return new Proxy(Object.setPrototypeOf({}, Storage.prototype), {

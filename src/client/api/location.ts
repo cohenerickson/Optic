@@ -1,5 +1,3 @@
-import { OpticLocation } from "~/types/Optic";
-
 $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
   get(t, prop: string | symbol): any {
     const loc = new URL(
@@ -25,10 +23,6 @@ $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
     } else if (prop === "toString") {
       return () => {
         return $optic.location.href;
-      };
-    } else if (prop === "valueOf") {
-      return () => {
-        return $optic.location;
       };
     }
 

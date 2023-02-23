@@ -44,7 +44,7 @@ export default async function handleResponse(
   try {
     new URL(requestURL);
   } catch {
-    throw new Error("Invalid URL provided");
+    throw new Error(url.pathname);
   }
 
   const requestInit: BareFetchInit = {
@@ -60,6 +60,24 @@ export default async function handleResponse(
     requestURL,
     requestInit
   );
+
+  if (request.finalURL !== requestURL) {
+    return new Response(
+      `
+        <script>
+          location.href = "${$optic.scopeURL(
+            request.finalURL,
+            new URL(requestURL)
+          )}";
+        </script>
+      `,
+      {
+        headers: {
+          "Content-Type": "text/html"
+        }
+      }
+    );
+  }
 
   let responseData: BodyInit | null | undefined;
   let responseInit: ResponseInit & { headers: Headers } = {
@@ -79,11 +97,15 @@ export default async function handleResponse(
       : 0;
     if (cache) responseInit.headers.set("Cache-Control", "no-cache");
     responseData = `
-      <script src="${$optic.shared}${cache ? `?cache=${cache}` : ""}"></script>
-      <script src="${$optic.client}${cache ? `?cache=${cache}` : ""}"></script>
-      <script>Object.assign($optic, ${JSON.stringify(
+      <script optic::internal src="${$optic.shared}${
+      cache ? `?cache=${cache}` : ""
+    }"></script>
+      <script optic::internal>$optic.setConfig = \`Object.assign($optic, ${JSON.stringify(
         $optic
-      )}, {libs: $optic.libs});</script>
+      )}, {libs: $optic.libs});\`;Function($optic.setConfig)();</script>
+      <script optic::internal src="${$optic.client}${
+      cache ? `?cache=${cache}` : ""
+    }"></script>
       ${await request.text()}
     `;
   } else if (event.request.destination === "style") {
