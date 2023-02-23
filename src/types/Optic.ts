@@ -37,4 +37,10 @@ export default interface Optic {
   location: OpticLocation;
   localStorage: OpticStorage;
   sessionStorage: OpticStorage;
+  postMessage: (
+    destination: Window,
+    data: any,
+    origin: string,
+    transfer?: Transferable[]
+  ) => void;
 }

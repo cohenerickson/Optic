@@ -1,8 +1,8 @@
 import { OpticStorage } from "~/types/Optic";
 
-function createStorageProxy(scope: Storage): OpticStorage {
+export function createStorageProxy(scope: Storage): OpticStorage {
   return new Proxy(Object.setPrototypeOf({}, Storage.prototype), {
-    get(t, prop: string | symbol) {
+    get(t, prop: string | symbol): any {
       const storage = Object.fromEntries(
         Object.entries(scope)
           .filter(([key]) => key.endsWith(`@${$optic.location.host}`))
@@ -38,14 +38,14 @@ function createStorageProxy(scope: Storage): OpticStorage {
 
       return storage[prop];
     },
-    ownKeys() {
+    ownKeys(): ArrayLike<string | symbol> {
       return Object.keys(scope)
         .filter((key) => key.endsWith(`@${$optic.location.host}`))
         .map((key) =>
           key.slice(0, key.length - $optic.location.host.length - 1)
         );
     },
-    getOwnPropertyDescriptor() {
+    getOwnPropertyDescriptor(): PropertyDescriptor {
       return {
         enumerable: true,
         configurable: true

@@ -1,7 +1,7 @@
 import { OpticLocation } from "~/types/Optic";
 
 $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
-  get(target: OpticLocation, prop) {
+  get(t, prop: string | symbol): any {
     const loc = new URL(
       $optic.decode(location.pathname.substring($optic.prefix.length))
     ) as any;
@@ -12,7 +12,7 @@ $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
       return "Location";
     } else if (prop === "assign") {
       return (url: string) => {
-        location.assign($optic.scopeURL(url, target));
+        location.assign($optic.scopeURL(url, $optic.location));
       };
     } else if (prop === "reload") {
       return () => {
@@ -20,7 +20,7 @@ $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
       };
     } else if (prop === "replace") {
       return (url: string) => {
-        location.replace($optic.scopeURL(url, target));
+        location.replace($optic.scopeURL(url, $optic.location));
       };
     } else if (prop === "toString") {
       return () => {
@@ -38,16 +38,16 @@ $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
 
     return undefined;
   },
-  ownKeys() {
+  ownKeys(): ArrayLike<string | symbol> {
     return Object.keys(location);
   },
-  getOwnPropertyDescriptor() {
+  getOwnPropertyDescriptor(): PropertyDescriptor {
     return {
       enumerable: true,
       configurable: true
     };
   },
-  set(target: OpticLocation, prop: keyof URL, value: string) {
+  set(t, prop: keyof URL, value: string): boolean {
     const loc = new URL(
       $optic.decode(location.pathname.substring($optic.prefix.length))
     ) as any;
