@@ -1,6 +1,6 @@
 import { XMLOpen } from "./network";
 
-const functionToStringBackup = Object.getOwnPropertyDescriptor(
+export const functionToStringBackup = Object.getOwnPropertyDescriptor(
   Function.prototype,
   "toString"
 )?.value;
@@ -21,10 +21,3 @@ Function.prototype.toString = function () {
   }
   return functionToStringBackup.call(this);
 };
-
-// functionPrototypeRewrites.forEach((value, key) => {
-//   console.log(key);
-//   Object.defineProperty(key.prototyoe, "length", {
-//     value: value.length
-//   });
-// });

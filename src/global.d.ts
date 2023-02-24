@@ -1,3 +1,6 @@
+import BareClient from "@tomphttp/bare-client";
+import { openDB } from "idb";
+
 //import Optic from "./types/Optic";
 export interface OpticLocation extends URL {
   ancestorOrigins: { length: number };
@@ -42,7 +45,8 @@ export default interface Optic {
   encode: (url: string) => string;
   decode: (encodedURL: string) => string;
   libs: {
-    [key: string]: any;
+    BareClient: typeof BareClient;
+    openDB: typeof openDB;
   };
   scopeURL: (url: string, meta: URL) => string;
   rewriteSrcSet: (url: string, meta: URL) => string;

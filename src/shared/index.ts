@@ -3,11 +3,13 @@ import { encode, decode } from "./codec";
 import scopeURL from "./scopeURL";
 import rewriteCSS from "./rewriteCSS";
 import rewriteSrcSet from "./rewriteSrcSet";
+import { openDB } from "idb";
 
 // @ts-ignore
 self.$optic = {
   libs: {
-    BareClient
+    BareClient,
+    openDB
   },
   encode,
   decode,

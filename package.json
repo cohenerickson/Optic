@@ -24,6 +24,7 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
-    "@tomphttp/bare-client": "^1.1.2-beta.3"
+    "@tomphttp/bare-client": "^1.1.2-beta.3",
+    "idb": "^7.1.1"
   }
 }

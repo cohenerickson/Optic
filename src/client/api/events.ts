@@ -97,21 +97,3 @@ $optic.postMessage = (
     transfer
   );
 };
-
-$optic.postMessage = new Proxy($optic.postMessage, {
-  get(target, prop) {
-    if (prop === "length") {
-      return postMessage.length;
-    }
-    return Reflect.get(target, prop);
-  },
-  ownKeys(): ArrayLike<string | symbol> {
-    return Object.keys(postMessage);
-  },
-  getOwnPropertyDescriptor(): PropertyDescriptor {
-    return {
-      enumerable: true,
-      configurable: true
-    };
-  }
-});
