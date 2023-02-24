@@ -1,8 +1,8 @@
 {
   "name": "optic",
   "version": "0.0.1",
+  "description": "An experimental web proxy for evading local and region based internet restrictions.",
   "author": "Cohen Erickson <contact@cohenerickson.com>",
-  "description": "",
   "keywords": [],
   "main": "index.js",
   "scripts": {

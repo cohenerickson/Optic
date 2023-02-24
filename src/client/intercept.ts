@@ -14,6 +14,19 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
   if (node.rewritten) return;
 
   const name = node.nodeName.toLowerCase();
+  if (name) {
+    const element = node as HTMLElement;
+    const style = $optic.attribute.getAttribute.call(element, "style");
+    if (style) {
+      $optic.attribute.setAttribute.call(element, "optic::style", style);
+      $optic.attribute.setAttribute.call(
+        element,
+        "style",
+        $optic.rewriteCSS(style, $optic.location)
+      );
+    }
+  }
+  
   if (name === "a" || name === "area" || name === "base") {
     const a = node as HTMLAnchorElement;
     const href = $optic.attribute.getAttribute.call(a, "href");

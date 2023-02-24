@@ -3,3 +3,11 @@ Object.defineProperty(navigator, "serviceWorker", {
     return undefined;
   }
 });
+
+navigator.sendBeacon = new Proxy(navigator.sendBeacon, {
+  apply(target, thisArg, args) {
+    return true;
+    // if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.location);
+    // return Reflect.apply(target, thisArg, args);
+  }
+});

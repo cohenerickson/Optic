@@ -6,7 +6,15 @@ window.open = new Proxy(window.open, {
       function onLoad() {
         frame.removeEventListener("load", onLoad);
 
-        // TODO: inject client scripts
+        appendScript(frame.document.head, {
+          url: new URL($optic.shared, location.origin).href
+        });
+        appendScript(frame.document.head, {
+          content: `if(!("$optic"in window))$optic={};$optic.setConfig = \`${$optic.setConfig}\`;Function($optic.setConfig)();`
+        });
+        appendScript(frame.document.head, {
+          url: new URL($optic.client, location.origin).href
+        });
       }
       frame.addEventListener("load", onLoad);
       return frame;
@@ -15,3 +23,17 @@ window.open = new Proxy(window.open, {
     return target.apply(null, args);
   }
 });
+
+function appendScript(scope: HTMLElement, options: any): void {
+  const script = scope.ownerDocument.createElement("script");
+  $optic.attribute.setAttribute.call(script, "optic::internal", "true");
+  const cache = $optic.disableCache
+    ? Math.floor(Math.random() * 900000) + 100000
+    : 0;
+  if (options.url)
+    script.src = `${options.url}${
+      $optic.disableCache ? `?cache=${cache}` : ""
+    }`;
+  if (options.content) script.innerHTML = options.content;
+  scope.appendChild(script);
+}

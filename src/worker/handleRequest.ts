@@ -17,7 +17,7 @@ export default async function handleResponse(
   }
 
   if ($optic.logLevel >= 3) {
-    console.log("Service Worker handling fetch event");
+    console.log("Service Worker handling fetch event", event.request);
   }
 
   const url = new URL(event.request.url, location.origin);
@@ -40,6 +40,24 @@ export default async function handleResponse(
   const requestURL = $optic.decode(
     url.pathname.substring($optic.prefix.length)
   );
+
+  if (url.search || url.hash) {
+    return new Response(
+      `
+    <script>
+    location.href = "${$optic.scopeURL(
+      requestURL + url.search + url.hash,
+      url
+    )}";
+    </script>
+    `,
+      {
+        headers: {
+          "Content-Type": "text/html"
+        }
+      }
+    );
+  }
 
   try {
     new URL(requestURL);
@@ -100,9 +118,9 @@ export default async function handleResponse(
       <script optic::internal src="${$optic.shared}${
       cache ? `?cache=${cache}` : ""
     }"></script>
-      <script optic::internal>$optic.setConfig = \`Object.assign($optic, ${JSON.stringify(
+      <script optic::internal>if(!("$optic"in window))$optic={};$optic.setConfig=\`Object.assign($optic,${JSON.stringify(
         $optic
-      )}, {libs: $optic.libs});\`;Function($optic.setConfig)();</script>
+      )},{libs: $optic.libs});\`;Function($optic.setConfig)();</script>
       <script optic::internal src="${$optic.client}${
       cache ? `?cache=${cache}` : ""
     }"></script>
