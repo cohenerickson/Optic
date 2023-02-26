@@ -12,6 +12,23 @@ window.fetch = new Proxy(window.fetch, {
   }
 });
 
+export const constructRequest = Request;
+// @ts-ignore
+window.Request = new Proxy(window.Request, {
+  construct(target: Function, args: any[]): any {
+    const loc = args[0];
+    if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.location);
+    return new Proxy(Reflect.construct(target, args), {
+      get(target: Request, prop: keyof Request): any {
+        if (prop === "url") {
+          return new URL(loc, $optic.location).href;
+        }
+        return target[prop];
+      }
+    });
+  }
+});
+
 export const XMLOpen = window.XMLHttpRequest.prototype.open;
 // @ts-ignore
 window.XMLHttpRequest.prototype.open = function (

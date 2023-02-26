@@ -1,4 +1,4 @@
-import { XMLOpen } from "./network";
+import { XMLOpen, constructRequest } from "./network";
 
 export const functionToStringBackup = Object.getOwnPropertyDescriptor(
   Function.prototype,
@@ -13,6 +13,7 @@ functionPrototypeRewrites.set($optic.location.toString, location.toString);
 functionPrototypeRewrites.set($optic.location.reload, location.reload);
 functionPrototypeRewrites.set($optic.location.replace, location.replace);
 functionPrototypeRewrites.set($optic.postMessage, postMessage);
+functionPrototypeRewrites.set(Request, constructRequest);
 functionPrototypeRewrites.set(window.XMLHttpRequest.prototype.open, XMLOpen);
 
 Function.prototype.toString = function () {
