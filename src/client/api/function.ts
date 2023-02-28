@@ -1,4 +1,5 @@
 import { XMLOpen, constructRequest } from "./network";
+import { pushState, replaceState } from "./history";
 
 export const functionToStringBackup = Object.getOwnPropertyDescriptor(
   Function.prototype,
@@ -15,6 +16,8 @@ functionPrototypeRewrites.set($optic.location.replace, location.replace);
 functionPrototypeRewrites.set($optic.postMessage, postMessage);
 functionPrototypeRewrites.set(Request, constructRequest);
 functionPrototypeRewrites.set(window.XMLHttpRequest.prototype.open, XMLOpen);
+functionPrototypeRewrites.set(history.pushState, pushState);
+functionPrototypeRewrites.set(history.replaceState, replaceState);
 
 Function.prototype.toString = function () {
   if (functionPrototypeRewrites.has(this)) {

@@ -26,7 +26,7 @@ export default async function handleResponse(
     const navigateTo = url.searchParams.get("url");
 
     if (!navigateTo) {
-      throw new Error("No url provided");
+      throw new Error("No URL provided");
     }
 
     return new Response(null, {
