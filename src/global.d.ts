@@ -1,5 +1,5 @@
 import BareClient from "@tomphttp/bare-client";
-import { openDB } from "idb";
+import type { openDB } from "idb";
 
 //import Optic from "./types/Optic";
 export interface OpticLocation extends URL {
@@ -67,4 +67,5 @@ export default interface Optic {
 
 declare global {
   var $optic: Optic;
+  var _$o: <T>(x: T) => T;
 }

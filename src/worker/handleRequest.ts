@@ -128,6 +128,8 @@ export default async function handleResponse(
     `;
   } else if (event.request.destination === "style") {
     responseData = $optic.rewriteCSS(await request.text(), new URL(requestURL));
+  } else if (event.request.destination === "script") {
+    responseData = $optic.rewriteJS(await request.text(), new URL(requestURL));
   } else {
     responseData = await request.blob();
   }

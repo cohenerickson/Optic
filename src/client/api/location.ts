@@ -26,7 +26,7 @@ $optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
       };
     }
 
-    if (loc[prop]) {
+    if (typeof loc[prop] !== "undefined") {
       return loc[prop];
     }
 

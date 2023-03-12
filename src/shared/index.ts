@@ -3,6 +3,7 @@ import { encode, decode } from "./codec";
 import scopeURL from "./scopeURL";
 import rewriteCSS from "./rewriteCSS";
 import rewriteSrcSet from "./rewriteSrcSet";
+import rewriteJS from "./rewriteJS";
 import { openDB } from "idb";
 
 // @ts-ignore
@@ -17,8 +18,6 @@ self.$optic = Object.assign(self.$optic, {
   decode,
   scopeURL,
   rewriteCSS,
-  rewriteJS<T>(x: T): T {
-    return x;
-  },
+  rewriteJS,
   rewriteSrcSet
 });

@@ -26,7 +26,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       );
     }
   }
-  
+
   if (name === "a" || name === "area" || name === "base") {
     const a = node as HTMLAnchorElement;
     const href = $optic.attribute.getAttribute.call(a, "href");
@@ -51,7 +51,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
     }
     if (script.nonce) {
       $optic.attribute.setAttribute.call(script, "optic::nonce", script.nonce);
-      script.removeAttribute("nonce");
+      $optic.attribute.removeAttribute.call(script, "nonce");
     }
     if (script.integrity) {
       $optic.attribute.setAttribute.call(
@@ -59,7 +59,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
         "optic::integrity",
         script.integrity
       );
-      script.removeAttribute("integrity");
+      $optic.attribute.removeAttribute.call(script, "integrity");
     }
     const clone = script.cloneNode() as HTMLScriptElement & {
       rewritten?: boolean;
@@ -98,7 +98,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
     }
     if (link.nonce) {
       $optic.attribute.setAttribute.call(link, "optic::nonce", link.nonce);
-      link.removeAttribute("nonce");
+      $optic.attribute.removeAttribute.call(link, "nonce");
     }
     if (link.integrity) {
       $optic.attribute.setAttribute.call(
@@ -106,7 +106,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
         "optic::integrity",
         link.integrity
       );
-      link.removeAttribute("integrity");
+      $optic.attribute.removeAttribute.call(link, "integrity");
     }
   } else if (name === "img" || name === "source") {
     const img = node as HTMLImageElement;

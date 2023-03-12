@@ -9,4 +9,5 @@ import "./api/history";
 import "./api/function";
 import "./api/network";
 
-import "./intercept";
+import "./mutation";
+import "./scope";
