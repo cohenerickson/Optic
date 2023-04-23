@@ -1,6 +1,5 @@
 import { parse } from "meriyah";
 import { generate } from "astring";
-// @ts-ignore
 import { makeTraveler } from "astravel";
 
 const scopedValues = [
