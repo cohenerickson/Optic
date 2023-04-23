@@ -7,7 +7,7 @@ window.fetch = new Proxy(window.fetch, {
     return target[prop];
   },
   apply(target: Function, _, args: any[]): any {
-    if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.location);
+    if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.scope(location));
     return target.apply(null, args);
   }
 });
@@ -17,11 +17,11 @@ export const constructRequest = Request;
 window.Request = new Proxy(window.Request, {
   construct(target: Function, args: any[]): any {
     const loc = args[0];
-    if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.location);
+    if (args[0]) args[0] = $optic.scopeURL(args[0], $optic.scope(location));
     return new Proxy(Reflect.construct(target, args), {
       get(target: Request, prop: keyof Request): any {
         if (prop === "url") {
-          return new URL(loc, $optic.location).href;
+          return $optic.scopeURL(loc, $optic.scope(location));
         }
         return target[prop];
       }
@@ -38,6 +38,7 @@ window.XMLHttpRequest.prototype.open = function (
   user,
   password
 ) {
-  if (url) url = $optic.scopeURL(url.toString(), $optic.location);
+  if (url) url = $optic.scopeURL(url.toString(), $optic.scope(location));
+  console.log(method, url, async, user, password);
   return XMLOpen.call(this, method, url, async, user, password);
 };

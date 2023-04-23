@@ -1,7 +1,6 @@
 import BareClient from "@tomphttp/bare-client";
 import type { openDB } from "idb";
 
-//import Optic from "./types/Optic";
 export interface OpticLocation extends URL {
   ancestorOrigins: { length: number };
   assign: (url: string) => void;
@@ -35,33 +34,32 @@ export interface OpticAttributes {
 }
 
 export default interface Optic {
-  prefix: string;
-  bare: string;
-  client: string;
-  worker: string;
-  shared: string;
-  disableCache: boolean;
-  logLevel: number;
+  config: {
+    prefix: string;
+    bare: string;
+    client: string;
+    worker: string;
+    shared: string;
+    disableCache: boolean;
+    logLevel: number;
+  };
   encode: (url: string) => string;
   decode: (encodedURL: string) => string;
   libs: {
     BareClient: typeof BareClient;
     openDB: typeof openDB;
   };
-  scopeURL: (url: string, meta: URL) => string;
-  rewriteSrcSet: (url: string, meta: URL) => string;
-  rewriteCSS: (url: string, meta: URL) => string;
-  rewriteJS: (url: string, meta: URL) => string;
-  location: OpticLocation;
-  localStorage: OpticStorage;
-  sessionStorage: OpticStorage;
-  postMessage: (
-    destination: Window,
-    data: any,
-    origin: string,
-    transfer?: Transferable[]
-  ) => void;
-  setConfig: string;
+  scopeURL: (url: string, meta: URL | Location) => string;
+  rewriteSrcSet: (url: string, meta: URL | Location) => string;
+  rewriteCSS: (url: string, meta: URL | Location) => string;
+  rewriteJS: (url: string, meta: URL | Location) => string;
+  scope: <T>(x: T) => T;
+  // postMessage: (
+  //   destination: Window,
+  //   data: any,
+  //   origin: string,
+  //   transfer?: Transferable[]
+  // ) => void;
   attribute: OpticAttributes;
 }
 

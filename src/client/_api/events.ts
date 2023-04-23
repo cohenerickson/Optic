@@ -1,4 +1,4 @@
-import { createStorageProxy } from "./storage";
+import createStorageProxy from "../api/storage";
 
 let onMessageHandler: any = null;
 Object.defineProperty(window, "onmessage", {
@@ -45,25 +45,28 @@ window.addEventListener = new Proxy(window.addEventListener, {
           }
         });
 
-        if (event.data.target === $optic.location.origin) listener(eventProxy);
+        if (event.data.target === $optic.scope(location).origin)
+          listener(eventProxy);
       };
     } else if (type === "storage") {
       args[1] = (event: StorageEvent) => {
         const { origin } = new URL(
           $optic.decode(
-            new URL(event.url).pathname.substring($optic.prefix.length)
+            new URL(event.url).pathname.substring($optic.config.prefix.length)
           )
         );
         const eventProxy = new Proxy(event, {
           get(target: StorageEvent, prop: string | symbol) {
             if (prop === "url") {
               return $optic.decode(
-                new URL(target.url).pathname.substring($optic.prefix.length)
+                new URL(target.url).pathname.substring(
+                  $optic.config.prefix.length
+                )
               );
             } else if (target.key && prop === "key") {
               return target.key.slice(
                 0,
-                target.key.length - $optic.location.host.length - 1
+                target.key.length - $optic.scope(location).host.length - 1
               );
             } else if (prop === "storageArea") {
               return createStorageProxy(target[prop] as Storage);
@@ -73,7 +76,7 @@ window.addEventListener = new Proxy(window.addEventListener, {
           }
         });
 
-        if (origin === $optic.location.origin) listener(eventProxy);
+        if (origin === $optic.scope(location).origin) listener(eventProxy);
       };
     }
 
@@ -81,19 +84,19 @@ window.addEventListener = new Proxy(window.addEventListener, {
   }
 });
 
-$optic.postMessage = (
-  destination: Window,
-  data: any,
-  origin: string,
-  transfer?: Transferable[]
-) => {
-  destination.postMessage(
-    {
-      emitter: $optic.location.origin,
-      target: origin,
-      data
-    },
-    location.origin,
-    transfer
-  );
-};
+// $optic.postMessage = (
+//   destination: Window,
+//   data: any,
+//   origin: string,
+//   transfer?: Transferable[]
+// ) => {
+//   destination.postMessage(
+//     {
+//       emitter: $optic.location.origin,
+//       target: origin,
+//       data
+//     },
+//     location.origin,
+//     transfer
+//   );
+// };

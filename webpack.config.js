@@ -28,6 +28,9 @@ module.exports = {
     static: {
       directory: path.join(__dirname, "public")
     },
+    client: {
+      logging: "none"
+    },
     proxy: {
       "/bare/": {
         pathRewrite: { "^/bare/": "" },

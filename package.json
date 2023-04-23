@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@tomphttp/bare-client": "^1.1.2-beta.3",
+    "astravel": "^0.6.1",
+    "astring": "^1.8.4",
     "esotope-hammerhead": "^0.6.3",
     "idb": "^7.1.1",
     "meriyah": "^4.3.4"

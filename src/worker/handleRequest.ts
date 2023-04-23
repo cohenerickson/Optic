@@ -9,65 +9,48 @@ export default async function handleResponse(
   bareClient: BareClient
 ): Promise<Response> {
   if (
-    [$optic.shared, $optic.client].includes(
+    [$optic.config.shared, $optic.config.client].includes(
       new URL(event.request.url, location.origin).pathname
     )
   ) {
     return fetch(event.request);
   }
 
-  if ($optic.logLevel >= 3) {
+  if ($optic.config.logLevel >= 3) {
     console.log("Service Worker handling fetch event", event.request);
   }
 
   const url = new URL(event.request.url, location.origin);
 
-  if (url.pathname.substring($optic.prefix.length - 1) === "/navigate") {
+  if (url.pathname.substring($optic.config.prefix.length - 1) === "/navigate") {
     const navigateTo = url.searchParams.get("url");
 
     if (!navigateTo) {
-      throw new Error("No URL provided");
+      return new Response();
     }
 
     return new Response(null, {
       status: 302,
       headers: {
-        Location: `${$optic.prefix}${$optic.encode(navigateTo)}`
+        Location: `${$optic.config.prefix}${$optic.encode(navigateTo)}`
       }
     });
   }
 
   const requestURL = $optic.decode(
-    url.pathname.substring($optic.prefix.length)
+    url.pathname.substring($optic.config.prefix.length)
   );
-
-  if (url.search || url.hash) {
-    return new Response(
-      `
-    <script>
-    location.href = "${$optic.scopeURL(
-      requestURL + url.search + url.hash,
-      url
-    )}";
-    </script>
-    `,
-      {
-        headers: {
-          "Content-Type": "text/html"
-        }
-      }
-    );
-  }
 
   try {
     new URL(requestURL);
-  } catch {
-    throw new Error(url.pathname);
+  } catch (e) {
+    return new Response();
   }
 
   const requestInit: BareFetchInit = {
     method: event.request.method,
-    headers: rewriteHeaders.outgoing(event.request.headers)
+    headers: rewriteHeaders.outgoing(event.request.headers),
+    redirect: "manual"
   };
 
   if (!["GET", "HEAD"].includes(event.request.method)) {
@@ -79,22 +62,16 @@ export default async function handleResponse(
     requestInit
   );
 
-  if (request.finalURL !== requestURL) {
-    return new Response(
-      `
-        <script>
-          location.href = "${$optic.scopeURL(
-            request.finalURL,
-            new URL(requestURL)
-          )}";
-        </script>
-      `,
-      {
-        headers: {
-          "Content-Type": "text/html"
-        }
+  if (request.status === 301 && request.headers.has("location")) {
+    return new Response(null, {
+      status: 301,
+      headers: {
+        location: $optic.scopeURL(
+          request.headers.get("location") as string,
+          new URL(requestURL)
+        )
       }
-    );
+    });
   }
 
   let responseData: BodyInit | null | undefined;
@@ -106,22 +83,19 @@ export default async function handleResponse(
 
   if ([101, 204, 205, 304].includes(request.status)) {
     responseData = null;
-  } else if (
-    ["iframe", "frame", "document"].includes(event.request.destination) ||
-    /text\/html/.test(request.headers.get("content-type") ?? "")
-  ) {
-    const cache = $optic.disableCache
+  } else if (/text\/html/.test(request.headers.get("content-type") ?? "")) {
+    const cache = $optic.config.disableCache
       ? Math.floor(Math.random() * 900000) + 100000
       : 0;
     if (cache) responseInit.headers.set("Cache-Control", "no-cache");
     responseData = `
-      <script optic::internal src="${$optic.shared}${
+      <script optic::internal src="${$optic.config.shared}${
       cache ? `?cache=${cache}` : ""
     }"></script>
-      <script optic::internal>if(!("$optic"in window))$optic={};$optic.setConfig=\`Object.assign($optic,${JSON.stringify(
-        $optic
-      )},{libs: $optic.libs});\`;Function($optic.setConfig)();</script>
-      <script optic::internal src="${$optic.client}${
+      <script optic::internal>if(!("$optic"in window))$optic={};$optic.config=${JSON.stringify(
+        $optic.config
+      )};</script>
+      <script optic::internal src="${$optic.config.client}${
       cache ? `?cache=${cache}` : ""
     }"></script>
       ${await request.text()}

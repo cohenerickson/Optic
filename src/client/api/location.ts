@@ -1,59 +1,80 @@
-$optic.location = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
-  get(t, prop: string | symbol): any {
-    const loc = new URL(
-      $optic.decode(location.pathname.substring($optic.prefix.length))
-    ) as any;
+const backup = new Map<Location, Location>();
 
-    if (prop === "constructor") {
-      return Location;
-    } else if (prop === Symbol.toStringTag) {
-      return "Location";
-    } else if (prop === "assign") {
-      return (url: string) => {
-        location.assign($optic.scopeURL(url, $optic.location));
-      };
-    } else if (prop === "reload") {
-      return () => {
-        location.reload();
-      };
-    } else if (prop === "replace") {
-      return (url: string) => {
-        location.replace($optic.scopeURL(url, $optic.location));
-      };
-    } else if (prop === "toString") {
-      return () => {
-        return $optic.location.href;
-      };
-    }
+export default function createLocationProxy(meta: Location): Location {
+  let bk = backup.get(meta);
 
-    if (typeof loc[prop] !== "undefined") {
-      return loc[prop];
-    }
+  if (!bk) {
+    bk = new Proxy(Object.setPrototypeOf({}, Location.prototype), {
+      get(t, prop: string | symbol): any {
+        let loc = new URL(meta.href);
+        if (meta.href === "about:srcdoc" || meta.href === "about:blank") {
+          loc = new URL(
+            $optic.decode(parent.location.pathname.substring($optic.config.prefix.length))
+          );
+        } else {
+          loc = new URL(
+            $optic.decode(meta.pathname.substring($optic.config.prefix.length))
+          ) as any;
+        }
 
-    return undefined;
-  },
-  ownKeys(): ArrayLike<string | symbol> {
-    return Object.keys(location);
-  },
-  getOwnPropertyDescriptor(): PropertyDescriptor {
-    return {
-      enumerable: true,
-      configurable: true
-    };
-  },
-  set(t, prop: keyof URL, value: string): boolean {
-    const loc = new URL(
-      $optic.decode(location.pathname.substring($optic.prefix.length))
-    ) as any;
+        if (prop === "constructor") {
+          return meta.constructor;
+        } else if (prop === Symbol.toStringTag) {
+          return "Location";
+        } else if (prop === "assign") {
+          return (url: string) => {
+            meta.assign($optic.scopeURL(url, $optic.scope(meta)));
+          };
+        } else if (prop === "reload") {
+          return () => {
+            meta.reload();
+          };
+        } else if (prop === "replace") {
+          return (url: string) => {
+            meta.replace($optic.scopeURL(url, $optic.scope(meta)));
+          };
+        } else if (prop === "toString") {
+          return () => {
+            return $optic.scope(meta).href;
+          };
+        }
 
-    if (!loc[prop]) {
-      return false;
-    }
+        // @ts-ignore
+        if (typeof loc[prop] !== "undefined") {
+          // @ts-ignore
+          return loc[prop];
+        }
 
-    loc[prop] = value;
+        return undefined;
+      },
+      ownKeys(): ArrayLike<string | symbol> {
+        return Object.keys(meta);
+      },
+      getOwnPropertyDescriptor(): PropertyDescriptor {
+        return {
+          enumerable: true,
+          configurable: true
+        };
+      },
+      set(t, prop: keyof URL, value: string): boolean {
+        const loc = new URL(
+          $optic.decode(meta.pathname.substring($optic.config.prefix.length))
+        ) as any;
 
-    location.href = $optic.scopeURL(loc.toString(), $optic.location);
+        if (!loc[prop]) {
+          return false;
+        }
 
-    return true;
+        loc[prop] = value;
+
+        meta.href = $optic.scopeURL(loc.toString(), $optic.scope(meta));
+
+        return true;
+      }
+    }) as Location;
+
+    backup.set(meta, bk);
   }
-});
+
+  return bk;
+}

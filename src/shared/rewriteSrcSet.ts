@@ -1,6 +1,6 @@
 import scopeURL from "./scopeURL";
 
-export default function rewriteSrcset(value: string, meta: URL): string {
+export default function rewriteSrcset(value: string, meta: URL | Location): string {
   const urls = value.split(/ [0-9]+x,? ?/g);
   if (!urls) return "";
   const sufixes = value.match(/ [0-9]+x,? ?/g);

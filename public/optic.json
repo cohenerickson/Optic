@@ -4,6 +4,6 @@
   "worker": "/worker.js",
   "client": "/client.js",
   "shared": "/shared.js",
-  "logLevel": 3,
+  "logLevel": 0,
   "disableCache": true
 }

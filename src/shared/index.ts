@@ -6,9 +6,7 @@ import rewriteSrcSet from "./rewriteSrcSet";
 import rewriteJS from "./rewriteJS";
 import { openDB } from "idb";
 
-// @ts-ignore
 self.$optic = self.$optic || {};
-// @ts-ignore
 self.$optic = Object.assign(self.$optic, {
   libs: {
     BareClient,

@@ -1,8 +1,14 @@
 const mutationObserver = new MutationObserver((mutations: MutationRecord[]) => {
   mutations.forEach((mutation: MutationRecord) => {
-    mutation.addedNodes.forEach((node: Node) => rewriteNode(node));
+    rewrite(mutation.target);
+    mutation.addedNodes.forEach(rewrite);
   });
 });
+
+function rewrite(node: Node) {
+  rewriteNode(node);
+  if (node.childNodes) node.childNodes.forEach(rewrite);
+}
 
 function rewriteNode(node: Node & { rewritten?: boolean }): void {
   if (node.nodeType !== Node.ELEMENT_NODE) return;
@@ -22,7 +28,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         element,
         "style",
-        $optic.rewriteCSS(style, $optic.location)
+        $optic.rewriteCSS(style, $optic.scope(location))
       );
     }
   }
@@ -35,7 +41,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         a,
         "href",
-        $optic.scopeURL(href, $optic.location)
+        $optic.scopeURL(href, $optic.scope(location))
       );
     }
   } else if (name === "script") {
@@ -46,7 +52,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         script,
         "src",
-        $optic.scopeURL(src, $optic.location)
+        $optic.scopeURL(src, $optic.scope(location))
       );
     }
     if (script.nonce) {
@@ -70,8 +76,10 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
         "optic::innerHTML",
         script.innerHTML
       );
-      // TODO: implement JS rewriting
-      clone.innerHTML = script.innerHTML;
+      clone.innerHTML = $optic.rewriteJS(
+        script.innerHTML,
+        $optic.scope(location)
+      );
     }
     clone.rewritten = true;
     script.parentElement?.replaceChild(clone, script);
@@ -83,7 +91,10 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
         "optic::innerHTML",
         style.innerHTML
       );
-      style.innerHTML = $optic.rewriteCSS(style.innerHTML, $optic.location);
+      style.innerHTML = $optic.rewriteCSS(
+        style.innerHTML,
+        $optic.scope(location)
+      );
     }
   } else if (name === "link") {
     const link = node as HTMLLinkElement;
@@ -93,7 +104,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         link,
         "href",
-        $optic.scopeURL(href, $optic.location)
+        $optic.scopeURL(href, $optic.scope(location))
       );
     }
     if (link.nonce) {
@@ -115,7 +126,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         img,
         "src",
-        $optic.scopeURL(src, $optic.location)
+        $optic.scopeURL(src, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(img, "optic::src", src);
     }
@@ -124,7 +135,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         img,
         "srcset",
-        $optic.rewriteSrcSet(srcset, $optic.location)
+        $optic.rewriteSrcSet(srcset, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(img, "optic::srcset", srcset);
     }
@@ -136,7 +147,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         form,
         "action",
-        $optic.scopeURL(action, $optic.location)
+        $optic.scopeURL(action, $optic.scope(location))
       );
     }
   } else if (name === "iframe") {
@@ -147,7 +158,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         iframe,
         "src",
-        $optic.scopeURL(src, $optic.location)
+        $optic.scopeURL(src, $optic.scope(location))
       );
     }
   } else if (name === "meta") {
@@ -160,7 +171,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
         meta,
         "content",
         content.replace(/^[0-9]+;\s*url=(.*)/g, (_, url) => {
-          return $optic.scopeURL(url, $optic.location);
+          return $optic.scopeURL(url, $optic.scope(location));
         })
       );
     }
@@ -173,7 +184,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         body,
         "background",
-        $optic.scopeURL(background, $optic.location)
+        $optic.scopeURL(background, $optic.scope(location))
       );
     }
   } else if (
@@ -188,7 +199,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         input,
         "src",
-        $optic.scopeURL(src, $optic.location)
+        $optic.scopeURL(src, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(input, "optic::src", src);
     }
@@ -199,7 +210,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         object,
         "data",
-        $optic.scopeURL(data, $optic.location)
+        $optic.scopeURL(data, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(object, "optic::data", data);
     }
@@ -210,7 +221,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         button,
         "formaction",
-        $optic.scopeURL(formaction, $optic.location)
+        $optic.scopeURL(formaction, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(
         button,
@@ -225,7 +236,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         video,
         "src",
-        $optic.scopeURL(src, $optic.location)
+        $optic.scopeURL(src, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(video, "optic::src", src);
     }
@@ -234,7 +245,7 @@ function rewriteNode(node: Node & { rewritten?: boolean }): void {
       $optic.attribute.setAttribute.call(
         video,
         "poster",
-        $optic.scopeURL(poster, $optic.location)
+        $optic.scopeURL(poster, $optic.scope(location))
       );
       $optic.attribute.setAttribute.call(video, "optic::poster", poster);
     }

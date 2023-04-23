@@ -16,13 +16,7 @@ importScripts(
   }}`
 );
 
-$optic.prefix = config.prefix;
-$optic.bare = config.bare;
-$optic.worker = config.worker;
-$optic.client = config.client;
-$optic.shared = config.shared;
-$optic.logLevel = config.logLevel ?? 0;
-$optic.disableCache = config.disableCache ?? false;
+$optic.config = config;
 
 const bareClient: BareClient = new $optic.libs.BareClient(
   new URL(config.bare, location.origin)

@@ -1,6 +1,7 @@
 export function incoming(headers: Headers): Headers {
   [
     "content-security-policy",
+    "content-security-policy-report-only",
     "cache-control",
     "clear-site-data",
     "content-encoding",

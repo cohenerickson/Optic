@@ -22,6 +22,7 @@ const ATTRIBUTE_REWRITES = {
     HTMLTrackElement,
     HTMLVideoElement
   ],
+  srcdoc: [HTMLIFrameElement],
   srcset: [HTMLImageElement, HTMLSourceElement],
   action: [HTMLFormElement],
   poster: [HTMLVideoElement],
@@ -45,7 +46,7 @@ $optic.attribute = Object.fromEntries(
     }
   )
 ) as {
-  [key in typeof ATTRIBUTE_FUNCTIONS[number]]: PropertyDescriptor["value"];
+  [key in (typeof ATTRIBUTE_FUNCTIONS)[number]]: PropertyDescriptor["value"];
 };
 
 Object.defineProperties(Element.prototype, {
@@ -65,11 +66,10 @@ Object.defineProperties(Element.prototype, {
   setAttribute: {
     value: function (attribute: string, value: string) {
       if (attribute.startsWith("on")) {
-        // TODO: implement JS rewriting
         return $optic.attribute.setAttribute.call(
           this,
           attribute,
-          $optic.rewriteJS(value, $optic.location)
+          $optic.rewriteJS(value, $optic.scope(location))
         );
       } else if (/^_?optic::/.test(attribute)) {
         return $optic.attribute.setAttribute.call(this, `_${attribute}`, value);
@@ -135,11 +135,10 @@ Object.defineProperties(Element.prototype, {
   setAttributeNode: {
     value: function (attribute: Attr) {
       if (/^on[a-z]+/i.test(attribute.name)) {
-        // TODO: implement JS rewriting
         return $optic.attribute.setAttribute.call(
           this,
           attribute.name,
-          $optic.rewriteJS(attribute.value, $optic.location)
+          $optic.rewriteJS(attribute.value, $optic.scope(location))
         );
       } else if (/^_?optic::/.test(attribute.name)) {
         return $optic.attribute.setAttribute.call(
@@ -199,7 +198,10 @@ Object.entries(ATTRIBUTE_REWRITES).forEach(([property, elements]) => {
     Object.defineProperty(element.prototype, property, {
       get() {
         if (property === "href" || property === "src") {
-          return new URL(this.getAttribute(property), $optic.location).href;
+          return new URL(
+            this.getAttribute(property),
+            $optic.scope(location) as any
+          ).href;
         }
         return get.call(this);
       },
@@ -208,9 +210,32 @@ Object.entries(ATTRIBUTE_REWRITES).forEach(([property, elements]) => {
           $optic.attribute.setAttribute.call(this, `optic::${property}`, value);
           return this.setAttribute(
             property,
-            $optic.scopeURL(value, $optic.location)
+            $optic.scopeURL(value, $optic.scope(location))
           );
         } else if (property === "nonce" || property === "integrity") {
+          return $optic.attribute.setAttribute.call(
+            this,
+            `optic::${property}`,
+            value
+          );
+        } else if (property === "srcdoc") {
+          const cache = $optic.config.disableCache
+            ? Math.floor(Math.random() * 900000) + 100000
+            : 0;
+          $optic.attribute.setAttribute.call(
+            this,
+            `srcdoc`,
+            `
+              <script optic::internal src="${$optic.config.shared}${
+              cache ? `?cache=${cache}` : ""
+            }"></script>
+              <script optic::internal>if(!("$optic"in window))$optic={};$optic.config=${JSON.stringify(
+                $optic.config
+              )};</script>
+              <script optic::internal src="${$optic.config.client}${
+              cache ? `?cache=${cache}` : ""
+            }"></script>${value}`
+          );
           return $optic.attribute.setAttribute.call(
             this,
             `optic::${property}`,

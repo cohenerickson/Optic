@@ -1,74 +1,100 @@
-import { parseScript } from "meriyah";
-import { generate } from "esotope-hammerhead";
+import { parse } from "meriyah";
+import { generate } from "astring";
+// @ts-ignore
+import { makeTraveler } from "astravel";
 
-export default function js(content: string, url: URL): string {
-  let AST: any = getAST(content);
-  AST = walkAST(AST, null, (node: any, parent: any) => {
-    if (node.type === "MemberExpression") {
-      node.object = {
-        type: "CallExpression",
-        callee: {
-          type: "Identifier",
-          name: "_$o"
-        },
-        arguments: [node.object]
-      };
-    } else if (
-      parent &&
-      ["BinaryExpression", "IfStatement", "ConditionalExpression"].includes(
-        parent.type
-      ) &&
-      node.type === "Identifier"
-    ) {
-      node = {
-        type: "CallExpression",
-        callee: {
-          type: "Identifier",
-          name: "_$o"
-        },
-        arguments: [node]
-      };
-    } else if (
-      node.type === "Literal" &&
-      (parent.type === "ImportDeclaration" ||
-        parent.type === "ImportExpression" ||
-        parent.type === "ExportNamedDeclaration" ||
-        parent.type === "ExportAllDeclaration")
-    ) {
-      node.value = $optic.scopeURL(node.value, url);
-    }
+const scopedValues = [
+  "$optic",
+  "location",
+  "window",
+  "top",
+  "parent",
+  "opener",
+  "eval",
+  "self",
+  "this",
+  "localStorage",
+  "sessionStorage"
+];
 
-    return node;
-  });
-  return generate(AST);
-}
-
-function walkAST(
-  AST: any,
-  parent: any,
-  handler: (node: any, parent: any) => any
-): any {
-  if (!AST || typeof AST !== "object") return AST;
-  AST = handler(AST, parent);
-  for (let node in AST) {
-    if (Array.isArray(AST[node])) {
-      for (let n in AST[node]) {
-        AST[node][n] = walkAST(AST[node][n], AST[node], handler);
-      }
-    } else {
-      AST[node] = walkAST(AST[node], AST, handler);
-    }
-  }
-  return AST;
-}
-
-function getAST(js: string): any {
+export default function js(content: string, meta: URL | Location): string {
   try {
-    return parseScript(js, {
-      module: true
+    const AST = parse(content, {
+      module: true,
+      next: true,
+      webcompat: true,
+      specDeviation: true
     });
-  } catch (err) {
-    console.error(err);
-    return parseScript("");
+
+    const traveler = makeTraveler({
+      go(node: any, state: any) {
+        if (node && this[node.type]) {
+          this[node.type](node, state);
+        }
+      },
+      MemberExpression(expression: any) {
+        if (expression.object.type !== "Identifier") {
+          this.go(expression.object);
+        }
+        if (scopedValues.includes(expression.object.name)) {
+          expression.object.name = `$optic.scope(${expression.object.name})`;
+        }
+      },
+      Property(node: any, state: any) {
+        if (node.shorthand) {
+          node.key = Object.assign({}, node.key);
+          node.shorthand = false;
+        }
+        if (node.value != null) {
+          this.go(node.value, state);
+        }
+      },
+      ArrowFunctionExpression(node: any, state: any) {
+        this.go(node.body, state);
+      },
+      VariableDeclarator(node: any, state: any) {
+        if (node.init != null) {
+          this.go(node.init, state);
+        }
+      },
+      AssignmentExpression(node: any, state: any) {
+        this.go(node.right, state);
+      },
+      UpdateExpression() {},
+      ExportSpecifier(node: any, state: any) {},
+      ClassDeclaration(node: any, state: any) {
+        if (node.superClass) {
+          this.go(node.superClass, state);
+        }
+        this.go(node.body, state);
+      },
+      Identifier(identifier: any) {
+        if (scopedValues.includes(identifier.name)) {
+          identifier.name = `$optic.scope(${identifier.name})`;
+        }
+      },
+      FunctionDeclaration(node: any, state: any) {
+        this.go(node.body, state);
+      },
+      ImportDeclaration(expression: any) {
+        expression.source.value = $optic.scopeURL(
+          expression.source.value,
+          meta
+        );
+      },
+      ImportExpression(expression: any) {
+        expression.source.value = $optic.scopeURL(
+          expression.source.value,
+          meta
+        );
+      }
+    });
+
+    traveler.go(AST);
+
+    return generate(AST);
+  } catch {
+    console.log(content);
+    return content;
   }
 }
