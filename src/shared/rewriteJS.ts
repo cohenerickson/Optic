@@ -48,9 +48,6 @@ export default function js(content: string, meta: URL | Location): string {
           this.go(node.value, state);
         }
       },
-      ArrowFunctionExpression(node: any, state: any) {
-        this.go(node.body, state);
-      },
       VariableDeclarator(node: any, state: any) {
         if (node.init != null) {
           this.go(node.init, state);
@@ -59,8 +56,11 @@ export default function js(content: string, meta: URL | Location): string {
       AssignmentExpression(node: any, state: any) {
         this.go(node.right, state);
       },
+      AssignmentPattern(node: any, state: any) {
+        this.go(node.right, state);
+      },
       UpdateExpression() {},
-      ExportSpecifier(node: any, state: any) {},
+      ExportSpecifier() {},
       ClassDeclaration(node: any, state: any) {
         if (node.superClass) {
           this.go(node.superClass, state);
@@ -72,7 +72,38 @@ export default function js(content: string, meta: URL | Location): string {
           identifier.name = `$optic.scope(${identifier.name})`;
         }
       },
+      CallExpression(node: any, state: any) {
+        this.go(node.callee, state);
+        const args = node["arguments"],
+          { length } = args;
+        for (let i = 0; i < length; i++) {
+          this.go(args[i], state);
+        }
+        node = {
+          type: "CallExpression",
+          callee: {
+            type: "Identifier",
+            name: "$optic"
+          },
+          arguments: [node]
+        };
+      },
       FunctionDeclaration(node: any, state: any) {
+        const { params } = node;
+        if (params != null) {
+          for (let i = 0, { length } = params; i < length; i++) {
+            if (params[i].type !== "Identifier") this.go(params[i], state);
+          }
+        }
+        this.go(node.body, state);
+      },
+      ArrowFunctionExpression(node: any, state: any) {
+        const { params } = node;
+        if (params != null) {
+          for (let i = 0, { length } = params; i < length; i++) {
+            if (params[i].type !== "Identifier") this.go(params[i], state);
+          }
+        }
         this.go(node.body, state);
       },
       ImportDeclaration(expression: any) {
@@ -91,9 +122,14 @@ export default function js(content: string, meta: URL | Location): string {
 
     traveler.go(AST);
 
-    return generate(AST);
+    return generate(AST, {
+      indent: "",
+      lineEnd: "",
+      comments: false
+    });
   } catch {
-    console.log(content);
+    // If there was an error in the rewriting, we return the original JS
+    // We are assuming the browser will throw an error at this point
     return content;
   }
 }
