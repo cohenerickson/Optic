@@ -22,7 +22,8 @@ export default function js(content: string, meta: URL | Location): string {
       module: true,
       next: true,
       webcompat: true,
-      specDeviation: true
+      specDeviation: true,
+      raw: true
     });
 
     const traveler = makeTraveler({
@@ -122,11 +123,7 @@ export default function js(content: string, meta: URL | Location): string {
 
     traveler.go(AST);
 
-    return generate(AST, {
-      indent: "",
-      lineEnd: "",
-      comments: false
-    });
+    return generate(AST);
   } catch {
     // If there was an error in the rewriting, we return the original JS
     // We are assuming the browser will throw an error at this point
