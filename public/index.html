@@ -1,22 +1,23 @@
-<!DOCTYPE html>
 <html lang="en" class="h-full w-full">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Optic</title>
-    <link rel="stylesheet" href="/style.css" />
-    <script src="/optic.js"></script>
+    <link rel="stylesheet" href="/output.css" />
+    <script src="/optic/optic.config.js"></script>
+    <script src="/optic/optic.loader.js"></script>
   </head>
   <body class="h-full w-full flex items-center justify-center bg-slate-900">
-    <input placeholder="Search" class="px-3 py-2 text-md text-white rounded-md shadow-lg border border-white bg-slate-800 focus:outline-0"></input>
+    <input
+      placeholder="Search"
+      class="px-3 py-2 text-md text-white rounded-md shadow-lg border border-white bg-slate-800 focus:outline-0"
+    />
     <script>
-      Optic.init("/optic.json");
+      const input = document.querySelector("input");
 
-      const search = document.querySelector("input");
-      search.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && search.value && !event.shiftKey) {
-          Optic.navigate(search.value);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && input.value && !event.shiftKey) {
+          Optic.navigate(input.value);
         }
       });
     </script>

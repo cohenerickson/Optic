@@ -1,33 +1,17 @@
-/// <reference no-default-lib="true"/>
+import Worker from "./Worker";
+
 /// <reference lib="webworker" />
+declare var self: ServiceWorkerGlobalScope;
 
-import handleRequest from "./handleRequest";
-import BareClient from "@tomphttp/bare-client";
-
-export declare var self: ServiceWorkerGlobalScope;
-
-const params = new URLSearchParams(location.search);
-const config = JSON.parse(params.get("config") as string);
-importScripts(
-  `${config.shared}${
-    config.disableCache
-      ? `?cache=${Math.floor(Math.random() * 900000) + 100000}`
-      : ""
-  }}`
+const config = decodeURIComponent(
+  new URLSearchParams(location.search).get("config") || "optic.config.js"
 );
 
-$optic.config = config;
+importScripts(config);
+importScripts(`${__optic$config.files.dir}${__optic$config.files.shared}`);
 
-const bareClient: BareClient = new $optic.libs.BareClient(
-  new URL(config.bare, location.origin)
-);
+self.skipWaiting();
 
-self.addEventListener("install", (event) => {
-  if (config.logLevel && config.logLevel >= 2)
-    console.log("Service Worker installed");
-  self.skipWaiting();
-});
+new Worker();
 
-self.addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event, bareClient));
-});
+export default Worker;

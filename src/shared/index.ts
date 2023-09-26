@@ -1,21 +1,27 @@
-import BareClient from "@tomphttp/bare-client";
-import { encode, decode } from "./codec";
-import scopeURL from "./scopeURL";
-import rewriteCSS from "./rewriteCSS";
-import rewriteSrcSet from "./rewriteSrcSet";
-import rewriteJS from "./rewriteJS";
-import { openDB } from "idb";
+import codec from "./codec";
+import { css } from "./rewrite/css";
+import { html } from "./rewrite/html";
+import { js } from "./rewrite/js";
+import { srcset } from "./rewrite/srcset";
+import { url } from "./rewrite/url";
 
-self.$optic = self.$optic || {};
-self.$optic = Object.assign(self.$optic, {
-  libs: {
-    BareClient,
-    openDB
-  },
-  encode,
-  decode,
-  scopeURL,
-  rewriteCSS,
-  rewriteJS,
-  rewriteSrcSet
-});
+class Optic {
+  codec = codec;
+  rewrite = {
+    url,
+    js,
+    css,
+    srcset,
+    html
+  };
+
+  constructor(scope: Window) {}
+}
+
+const optic: Optic = new Optic(self);
+
+if ("self" in globalThis) {
+  self.__$optic = optic;
+}
+
+export default Optic;
